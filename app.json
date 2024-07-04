@@ -12,17 +12,30 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "bundleIdentifier": "com.alck.mqtttcp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.alck.mqtttcp"
+      "package": "com.alck.mqtttcp",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "60a69da3-870a-47d3-9547-31531569a1fc"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/60a69da3-870a-47d3-9547-31531569a1fc"
     }
   }
 }
