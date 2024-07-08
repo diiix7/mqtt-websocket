@@ -11,4 +11,10 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+-keep class org.eclipse.paho.client.mqttv3.** { *; }
+-keep class org.eclipse.paho.android.service.** { *; }
+-keep class org.eclipse.paho.client.mqttv3.logging.** { *; }
+-keep class com.alck.mqtttcp.** { *; }
+
+
 # Add any project specific keep options here:
