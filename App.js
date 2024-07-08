@@ -16,7 +16,7 @@ const myStorage = {
 
 // Create a client instance
 const client = new Client({
-  uri: "ws://192.168.86.91:8083/mqtt",
+  uri: "ws://192.168.86.118:8083/mqtt",
   clientId: `clientId-${Math.floor(Math.random() * 10000)}`,
   storage: myStorage,
 });
@@ -45,7 +45,7 @@ export default function App() {
       .then(() => {
         console.log("Connected");
         setIsConnected(true);
-        return mqttClient.subscribe("test/topic");
+        return mqttClient.subscribe("topic");
       })
       .catch((err) => {
         console.log("Connection failed", err);
@@ -56,10 +56,10 @@ export default function App() {
 
   const handleSendMessage = () => {
     const ms = {
-      message: "Hello MQTT",
+      message: "Lewis Hamilton is back on top !",
     };
     const mqttMessage = new Message(JSON.stringify(ms));
-    mqttMessage.destinationName = "test/topic";
+    mqttMessage.destinationName = "topic";
     mqttClient.send(mqttMessage);
   };
 
@@ -73,7 +73,9 @@ export default function App() {
         <Text>Send Message</Text>
       </Pressable>
       {isConnected && <Text>Connected to MQTT broker</Text>}
-      {message && <Text>Received message: {message}</Text>}
+      {message && (
+        <Text style={{ textAlign: "center" }}>Received message: {message}</Text>
+      )}
       <StatusBar style="auto" />
     </View>
   );
