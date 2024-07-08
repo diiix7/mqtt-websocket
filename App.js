@@ -1,91 +1,104 @@
-import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useState, useEffect } from "react";
-import { Client, Message } from "react-native-paho-mqtt";
+import React, { useState } from "react";
+import { View, TextInput, Button, Text, StyleSheet } from "react-native";
+import init from "react_native_mqtt";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Set up an in-memory alternative to global localStorage
-const myStorage = {
-  setItem: (key, item) => {
-    myStorage[key] = item;
-  },
-  getItem: (key) => myStorage[key],
-  removeItem: (key) => {
-    delete myStorage[key];
-  },
-};
-
-// Create a client instance
-const client = new Client({
-  uri: "ws://192.168.86.118:8083/mqtt",
-  clientId: `clientId-${Math.floor(Math.random() * 10000)}`,
-  storage: myStorage,
+// Initialisation de la bibliothèque MQTT
+init({
+  size: 10000,
+  storageBackend: AsyncStorage,
+  defaultExpires: 1000 * 3600 * 24,
+  enableCache: true,
+  reconnect: true,
+  sync: {},
 });
 
-export default function App() {
-  const [mqttClient, setMqttClient] = useState(client);
-  const [isConnected, setIsConnected] = useState(false);
-  const [message, setMessage] = useState("");
+const App = () => {
+  const [ipAddress, setIpAddress] = useState("");
+  const [status, setStatus] = useState("Not connected");
+  let client;
 
-  useEffect(() => {
-    // Set event handlers
-    mqttClient.on("connectionLost", (responseObject) => {
+  const connectToBroker = () => {
+    const brokerUrl = `ws://${ipAddress}:8083/mqtt`;
+    client = new Paho.MQTT.Client(
+      brokerUrl,
+      `clientId-${Math.floor(Math.random() * 10000)}`
+    );
+
+    client.onConnectionLost = (responseObject) => {
       if (responseObject.errorCode !== 0) {
-        console.log(responseObject.errorMessage);
+        setStatus(`Connection lost: ${responseObject.errorMessage}`);
       }
-      setIsConnected(false);
-    });
-
-    mqttClient.on("messageReceived", (message) => {
-      console.log(message.payloadString);
-      setMessage(message.payloadString);
-    });
-
-    mqttClient
-      .connect()
-      .then(() => {
-        console.log("Connected");
-        setIsConnected(true);
-        return mqttClient.subscribe("topic");
-      })
-      .catch((err) => {
-        console.log("Connection failed", err);
-      });
-
-    setMqttClient(mqttClient);
-  }, []);
-
-  const handleSendMessage = () => {
-    const ms = {
-      message: "Lewis Hamilton is back on top !",
     };
-    const mqttMessage = new Message(JSON.stringify(ms));
-    mqttMessage.destinationName = "topic";
-    mqttClient.send(mqttMessage);
+
+    client.onMessageArrived = (message) => {
+      console.log(
+        `Received message: ${message.payloadString} from topic: ${message.destinationName}`
+      );
+    };
+
+    client.connect({
+      onSuccess: () => {
+        setStatus("Connected");
+        // Souscrire à un topic après connexion
+        client.subscribe("test/topic", (err) => {
+          if (!err) {
+            console.log("Subscribed to topic");
+          }
+        });
+      },
+      onFailure: (err) => {
+        setStatus(`Connection failed: ${err.errorMessage}`);
+      },
+      useSSL: false,
+      userName: "your_username", // Si nécessaire
+      password: "your_password", // Si nécessaire
+    });
+  };
+
+  const sendMessage = (topic, message) => {
+    if (client && client.isConnected()) {
+      const mqttMessage = new Paho.MQTT.Message(message);
+      mqttMessage.destinationName = topic;
+      client.send(mqttMessage);
+    } else {
+      console.log("Client is not connected");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text>Mqtt connection via websocket</Text>
-      <Pressable
-        onPress={handleSendMessage}
-        style={{ padding: 10, backgroundColor: "skyblue", marginTop: 10 }}
-      >
-        <Text>Send Message</Text>
-      </Pressable>
-      {isConnected && <Text>Connected to MQTT broker</Text>}
-      {message && (
-        <Text style={{ textAlign: "center" }}>Received message: {message}</Text>
-      )}
-      <StatusBar style="auto" />
+      <Text style={styles.title}>MQTT Client</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter broker IP address"
+        onChangeText={setIpAddress}
+        value={ipAddress}
+      />
+      <Button title="Connect" onPress={connectToBroker} />
+      <Text>Status: {status}</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
 });
+
+export default App;
