@@ -3,7 +3,6 @@ import { View, TextInput, Button, Text, StyleSheet } from "react-native";
 import init from "react_native_mqtt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Initialisation de la bibliothèque MQTT
 init({
   size: 10000,
   storageBackend: AsyncStorage,
@@ -40,7 +39,6 @@ const App = () => {
     client.connect({
       onSuccess: () => {
         setStatus("Connected");
-        // Souscrire à un topic après connexion
         client.subscribe("test/topic", (err) => {
           if (!err) {
             console.log("Subscribed to topic");
@@ -51,8 +49,8 @@ const App = () => {
         setStatus(`Connection failed: ${err.errorMessage}`);
       },
       useSSL: false,
-      userName: "your_username", // Si nécessaire
-      password: "your_password", // Si nécessaire
+      userName: "mqtttcp",
+      password: "mqtttcp",
     });
   };
 
